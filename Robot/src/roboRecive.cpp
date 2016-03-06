@@ -18,7 +18,7 @@ int sock, length, n;
 socklen_t fromlen;
 struct sockaddr_in server;
 struct sockaddr_in from;
-
+//uint8_t buf[1024];
 
 void error(const char *msg)
 {
@@ -30,35 +30,32 @@ void error(const char *msg)
 using namespace std;
 roboRecive::roboRecive()
 {
-    sock=socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) error("Opening socket");
-    length = sizeof(server);
-    bzero(&server,length);
-    server.sin_family=AF_INET;
-    server.sin_addr.s_addr=INADDR_ANY;
-    server.sin_port=htons(4000);
-    if (bind(sock,(struct sockaddr *)&server,length)<0)
-        error("binding");
-    fromlen = sizeof(struct sockaddr_in);
+   sock=socket(AF_INET, SOCK_DGRAM, 0);
+   if (sock < 0) error("Opening socket");
+   length = sizeof(server);
+   bzero(&server,length);
+   server.sin_family=AF_INET;
+   server.sin_addr.s_addr=INADDR_ANY;
+   server.sin_port=htons(4000);
+   if (bind(sock,(struct sockaddr *)&server,length)<0)
+       error("binding");
+   fromlen = sizeof(struct sockaddr_in);
 }
 
-int roboRecive::run(vector<uint8_t>* buf)
+int roboRecive::run(uint8_t* buf, int bufSize)
 {
+       memset(buf, '\0',bufSize);
+       n = recvfrom(sock,buf,bufSize,0,(struct sockaddr *)&from,&fromlen);
+       if (n < 0) error("recvfrom");
+       return n;
+       //write(1,"Received a datagram: ",21);
+       //write(1,buf,n);
+       /*
+       n = sendto(sock,"Got your message\n",17,
+                  0,(struct sockaddr *)&from,fromlen);
+       if (n  < 0) error("sendto");
+       */
 
-    //memset(&buf, '\0',bufSize);
-    *buf.erase(*buf.begin(),*buf.end());
-    //http://stackoverflow.com/questions/4223711/a-more-elegant-way-to-use-recv-and-vectorunsigned-char
-    n = recvfrom(sock,buf[0],*buf.size(),0,(struct sockaddr *)&from,&fromlen);
-    if (n < 0) error("recvfrom");
-
-    //write(1,"Received a datagram: ",21);
-    //write(1,buf,n);
-    /*
-    n = sendto(sock,"Got your message\n",17,
-               0,(struct sockaddr *)&from,fromlen);
-    if (n  < 0) error("sendto");
-    */
-    return n;
 }
 
 roboRecive::~roboRecive()

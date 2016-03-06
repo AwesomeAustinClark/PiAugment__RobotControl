@@ -83,19 +83,19 @@ public class Window extends javax.swing.JFrame{
             [1:mfl,2:mfr,3:mbl,4:mbr]
         */        
         // byte are 0 to 255, and half of 255 is 127.5
-        ival = (int)((mfl/(double)100)*255);
+        ival = (int)(((Math.abs(mfl))/(double)100)*255);
         val = (byte)ival; 
         modifiers = setBit(modifiers, mfl>=0, 0);
         
-        ival2 = (int)((mfr/(double)100)*255);
+        ival2 = (int)((Math.abs(mfr)/(double)100)*255);
         val2 = (byte)ival2; 
         modifiers = setBit(modifiers, mfr>=0, 1);
         
-        ival3 = (int)((mbl/(double)100)*255);
+        ival3 = (int)((Math.abs(mbl)/(double)100)*255);
         val3 = (byte)ival3;
         modifiers = setBit(modifiers, mbl>=0, 2);
         
-        ival4 = (int)((mbr/(double)100)*255);
+        ival4 = (int)((Math.abs(mbr)/(double)100)*255);
         val4 = (byte)ival4; 
         modifiers = setBit(modifiers, mbr>=0, 3);
         
@@ -106,7 +106,7 @@ public class Window extends javax.swing.JFrame{
         ts[4]= val3;
         ts[5]= val4;
         ts[6]= ']';
-        System.out.println(String.format("%8s", Integer.toBinaryString(modifiers & 0xFF)).replace(' ', '0'));
+        System.out.println(ival+" : "+val+" : "+String.format("%8s", Integer.toBinaryString(val & 0xFF)).replace(' ', '0'));
         //System.out.println(ival+","+ival2+","+ival3+","+ival4);
         return (ts);
         //"["+(char)(val)+""+(char)(val2)+""+(char)(val3)+""+(char)(val4)+"]"
@@ -744,7 +744,10 @@ public class Window extends javax.swing.JFrame{
         GetIPPort getWin = new GetIPPort();
         final Window window = new Window();
         window.makeStringToSend(-100, -80, -50, 0);
-        window.makeStringToSend(0, 50, 80, 100);
+        window.makeStringToSend(100, 50, 80, 100);
+        window.makeStringToSend(-50, -80, -50, 0);
+        window.makeStringToSend(50, 50, 80, 100);
+        window.makeStringToSend(0, -80, -50, 0);
         getWin.setVisible(true);
         while(getWin.initialized==false){
             Thread.sleep(100);

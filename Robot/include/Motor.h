@@ -1,15 +1,23 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-static int GPIOSETUP();
+#include <stdint.h>
+
+int GPIOSETUP();
 
 class Motor
 {
 public:
-    static const int motorStopValue = 0;
-    Motor(int,int);
-    void setForward(int);
-    void setBackward(int);
+    int motorStopValue = 0;
+    int motorMaxValue = 255;
+    const static int ModeDigital = 0; // zero or full power
+    const static int ModePwm = 1; // soft PWM
+    int motorMode = 1;
+    Motor(int,int,int);
+    Motor();
+    void setForward(uint8_t);
+    void setBackward(uint8_t);
+    void stop();
     virtual ~Motor();
 protected:
 private:
