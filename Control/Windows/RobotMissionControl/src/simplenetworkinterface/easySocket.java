@@ -32,12 +32,12 @@ public class easySocket {
         if(msg_.length==0){
             return;
         }
-        socket.send(new DatagramPacket(msg_, msg_.length,remoteIP, 4000));
+        socket.send(new DatagramPacket(msg_, msg_.length,remoteIP, port));
     }
     
     void send(String msg_) throws IOException{
         sendData = msg_.getBytes();
-        socket.send(new DatagramPacket(sendData, sendData.length,remoteIP, 4000));
+        socket.send(new DatagramPacket(sendData, sendData.length,remoteIP, port));
     }
     
     DatagramPacket read() throws IOException{

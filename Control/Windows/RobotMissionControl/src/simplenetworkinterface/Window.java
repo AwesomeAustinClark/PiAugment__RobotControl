@@ -41,14 +41,16 @@ public class Window extends javax.swing.JFrame{
     
     
     InetAddress IP;
-    int port;
+    int PORT;
     
     void setIP(InetAddress ip){
         IP = ip;
+        this.ipField.setText("IP: "+IP+" | Port: "+PORT);
     }
     
     void setPort(int port_){
-        port = port_;
+        PORT = port_;
+        this.ipField.setText("IP: "+IP+" | Port: "+PORT);
     }
             
     /**
@@ -106,20 +108,43 @@ public class Window extends javax.swing.JFrame{
         ts[4]= val3;
         ts[5]= val4;
         ts[6]= ']';
-        System.out.println(ival+" : "+val+" : "+String.format("%8s", Integer.toBinaryString(val & 0xFF)).replace(' ', '0'));
+        //System.out.println(ival+" : "+val+" : "+String.format("%8s", Integer.toBinaryString(val & 0xFF)).replace(' ', '0'));
         //System.out.println(ival+","+ival2+","+ival3+","+ival4);
         return (ts);
         //"["+(char)(val)+""+(char)(val2)+""+(char)(val3)+""+(char)(val4)+"]"
     }
     
+    
+    // Tankdrive function, that converts the x and y values
+    // to store as left/right
+    public double[] tankdrive(double x,double y, double left,double right) {
+        // x is -50 to 50
+        // y is -50 to 50
+        left = 255;
+        right = 255;
+        right = (y/50)*100;
+        left =  (x/50)*100;
+        
+        System.out.print(left+" : "+right);
+        return new double[]{left,right};
+    }
+    
     public void setup() throws IOException{
         server = new easySocket();
-        server.setup(port,IP,port);
-        server.send("U there?");
+        server.setup(PORT,IP,PORT);
         listen = new Thread(new Runnable(){
             @Override
-            public void run() {// WIP
-                while(true){
+            public void run() {
+                try {
+                // WIP
+                server.send("[@]");
+                server.send("[@]");
+                server.send("[@]");
+                
+                } catch (IOException ex) {
+                    Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                while(!exitBothSides){
                     try {
                         int mfl = 0;
                         int mfr = 0;
@@ -183,10 +208,6 @@ public class Window extends javax.swing.JFrame{
                                 mbr = 0;
                             }else if(nws==-1 && nad==-1){
                                 commandField.setText("SHUTDOWN");
-                                server.send("[-]");
-                                server.send("[-]");
-                                server.send("[-]");
-                                server.send("[-]");
                                 break;
                             }else{
                                 commandField.setText("!STOP!");
@@ -197,11 +218,11 @@ public class Window extends javax.swing.JFrame{
                             }
                             server.send(makeStringToSend(mfl, mfr, mbl, mbr));
                         }else if(ct == 2){// Gamepad
-                            int x = xAxisPercentage-50; // is -50 to +50
-                            int y = yAxisPercentage-50; // is -50 to +50
-                            int right = 0;
-                            int left = 0;
-                            String ts;
+                            double x = ryAxisPercentage-50;
+                            double y = yAxisPercentage-50;
+                            double right = 0;
+                            double left = 0;
+                            double cat[];
                             /*
                                 static int xAxisPercentage = 0;
                                 static int yAxisPercentage = 0; 
@@ -209,33 +230,18 @@ public class Window extends javax.swing.JFrame{
                                 static float axisValue = 0;
                                 static int axisValueInPercentage = 0;
                             */
-                            axisLabel.setText("x: "+xAxisPercentage+" y: "+yAxisPercentage);
-                            //if(x<2 && x>-2){x=2;}
-                            //if(y<2 && y>-2){y=2;}
-                            if(x>0 && y>0){ // top right quadrant
-                                left = (int)(y+x);
-                                right = (int)(y-x);
-                            }else if(y<0 && x>=0){
-                                left = (int)(y-x);
-                                right = (int)(y+x);
-                            }else if(y<0 && x<=0){
-                                left = (int)(y-x);
-                                right = (int)(y+x);
-                            }else if(y>0 && x<=0){
-                                left = (int)(y+x);
-                                right = (int)(y-x);
-                            }else{
-                                left = 50;
-                                right = 50;
-                            }
-                            //ts = makeStringToSend(((char)((byte)left)), ((char)((byte)right)), ((char)((byte)left)), ((char)((byte)right)));
-                            
-                            server.send(makeStringToSend(left, right, left, right));
-                            //System.out.println(ts+"["+left+' '+right+' '+left+' '+right);
-                            
-                            //server.send(makeStringToSend(mfl, mfr, mbl, mbr));
+                            //cat = tankdrive(x, y, left, right);
+                            //left = cat[1];
+                            //right = cat[0];
+                            left = (x/50)*100;
+                            right = (y/50)*100;
+                            if(left>=-10 && left<=10){left=0;}
+                            if(right>=-10 && right<=10){right=0;}
+                            //System.out.println(" <> "+right+" : "+left);
+                            server.send(makeStringToSend((int)left, (int)right, (int)left, (int)right));
                             
                         }
+                        axisLabel.setText("x: "+xAxisPercentage+" y: "+yAxisPercentage);
                         //System.out.println(toSend);
                         
                         
@@ -254,6 +260,22 @@ public class Window extends javax.swing.JFrame{
                         Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                try {
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                    server.send("[-]");
+                } catch (IOException ex) {
+                    Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                                
             }
             
         });
@@ -384,23 +406,29 @@ public class Window extends javax.swing.JFrame{
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jScrollPane2)
-                            .addComponent(connectionField))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(connectionBar, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(64, 64, 64))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 536, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                         .addGroup(layout.createSequentialGroup()
-                            .addComponent(ckField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(connectionField, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(connectionBar, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(82, 82, 82))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(ckField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGap(74, 74, 74)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 536, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(ButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -414,21 +442,21 @@ public class Window extends javax.swing.JFrame{
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(axisForPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(axisForlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(28, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(connectionField, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(connectionField, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(connectionBar, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -438,7 +466,7 @@ public class Window extends javax.swing.JFrame{
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
+                        .addGap(20, 20, 20)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(axisForlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(axisLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -467,7 +495,7 @@ public class Window extends javax.swing.JFrame{
 
     private void controlFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_controlFieldKeyPressed
         char key = evt.getKeyChar();
-        System.out.println(key);
+        //System.out.println(key);
         switch (key) {
             case 'w':
                 nws = 1;
@@ -626,6 +654,8 @@ public class Window extends javax.swing.JFrame{
     // X axis and Y axis
     static int xAxisPercentage = 0;
     static int yAxisPercentage = 0; 
+    static int rxAxisPercentage = 0;
+    static int ryAxisPercentage = 0; 
     static float hatSwitchPosition = 0;
     static float axisValue = 0;
     static int axisValueInPercentage = 0;
@@ -696,12 +726,20 @@ public class Window extends javax.swing.JFrame{
                     // X axis
                     if(componentIdentifier == Component.Identifier.Axis.X){
                         xAxisPercentage = axisValueInPercentage;
+                        
                         continue; // Go to next component.
                     }
                     // Y axis
                     if(componentIdentifier == Component.Identifier.Axis.Y){
                         yAxisPercentage = axisValueInPercentage;
                         continue; // Go to next component.
+                    }
+                    
+                    if("z".equals(component.getIdentifier().toString())){
+                        rxAxisPercentage = axisValueInPercentage;
+                    }
+                    if("rz".equals(component.getIdentifier().toString())){
+                        ryAxisPercentage = axisValueInPercentage;
                     }
                     
                     // Other axis
@@ -743,11 +781,13 @@ public class Window extends javax.swing.JFrame{
         pbc();
         GetIPPort getWin = new GetIPPort();
         final Window window = new Window();
+        /*
         window.makeStringToSend(-100, -80, -50, 0);
         window.makeStringToSend(100, 50, 80, 100);
         window.makeStringToSend(-50, -80, -50, 0);
         window.makeStringToSend(50, 50, 80, 100);
         window.makeStringToSend(0, -80, -50, 0);
+        */
         getWin.setVisible(true);
         while(getWin.initialized==false){
             Thread.sleep(100);

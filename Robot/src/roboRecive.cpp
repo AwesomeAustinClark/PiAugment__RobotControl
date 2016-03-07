@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <string.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -47,6 +46,24 @@ int roboRecive::run(uint8_t* buf, int bufSize)
        memset(buf, '\0',bufSize);
        n = recvfrom(sock,buf,bufSize,0,(struct sockaddr *)&from,&fromlen);
        if (n < 0) error("recvfrom");
+       return n;
+       //write(1,"Received a datagram: ",21);
+       //write(1,buf,n);
+       /*
+       n = sendto(sock,"Got your message\n",17,
+                  0,(struct sockaddr *)&from,fromlen);
+       if (n  < 0) error("sendto");
+       */
+
+}
+
+int roboRecive::run(uint8_t* buf, int bufSize, std::string* inAddr, int* inPort)
+{
+       memset(buf, '\0',bufSize);
+       n = recvfrom(sock,buf,bufSize,0,(struct sockaddr *)&from,&fromlen);
+       if (n < 0) error("recvfrom");
+       *inAddr = inet_ntoa(from.sin_addr);
+       *inPort = from.sin_port;
        return n;
        //write(1,"Received a datagram: ",21);
        //write(1,buf,n);

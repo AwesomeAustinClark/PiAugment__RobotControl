@@ -8,10 +8,11 @@ int GPIOSETUP();
 class Motor
 {
 public:
-    int motorStopValue = 0;
+    int motorStopValue = 255;
     int motorMaxValue = 255;
     const static int ModeDigital = 0; // zero or full power
     const static int ModePwm = 1; // soft PWM
+    const static int ModeAnalog = 2; // analog
     int motorMode = 1;
     Motor(int,int,int);
     Motor();

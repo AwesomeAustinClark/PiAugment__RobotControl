@@ -46,13 +46,8 @@ public class GetIPPort extends javax.swing.JFrame {
         helpField.setEditable(false);
         helpField.setText("Enter the Raspberry Pi's IP or Hostname");
 
-        GetIP.setText("192.168.1.1");
+        GetIP.setText("raspberrypi");
         GetIP.setNextFocusableComponent(getPort);
-        GetIP.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                GetIPActionPerformed(evt);
-            }
-        });
 
         HelpField2.setEditable(false);
         HelpField2.setText("Enter the programs bound port num");
@@ -123,12 +118,7 @@ public class GetIPPort extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void GetIPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_GetIPActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_GetIPActionPerformed
-
     private void EnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EnterActionPerformed
-        int port = -1;
         try {
             IP = InetAddress.getByName(GetIP.getText());
         } catch (Exception e) {
@@ -136,8 +126,8 @@ public class GetIPPort extends javax.swing.JFrame {
             return;
         }
         try{
-            port = Integer.parseInt(getPort.getText());
-            if(port>65535 || port<0){
+            Port = Integer.parseInt(getPort.getText());
+            if(Port>65535 || Port<0){
                 throw new Exception("Invalid Port");
             }
         }catch(Exception e){

@@ -45,20 +45,22 @@ void setForward(){
     backLeft.setForward(255);
     backRight.setForward(255);
 }
-
-int main (void)
-{std::cout << (getuid()==0) << std::endl;
+std::string inAddr;
+int inPort;
+int main (void){
+    cout << "Setting up...";
     GPIOSETUP();
-    Motor frontLeft = Motor(5,6,Motor::ModePwm);
-    Motor frontRight = Motor(24,25, Motor::ModePwm);
-    Motor backLeft = Motor(3,2, Motor::ModePwm);
-    Motor backRight = Motor(23,18, Motor::ModePwm);
+    Motor frontLeft = Motor(5,6,Motor::ModeAnalog);
+    Motor frontRight = Motor(24,25, Motor::ModeAnalog);
+    Motor backLeft = Motor(3,2, Motor::ModeAnalog);
+    Motor backRight = Motor(23,18, Motor::ModeAnalog);
+    cout << "Done." <<endl << "Testing Motors... ";
     stopMotors();
     sleep(2);
     setForward();
     sleep(2);
     stopMotors();
-    sleep(2);
+    cout << "Done" << endl;
     if(isatty(fileno(stdin))){
         inTerm=true;
     }
@@ -73,30 +75,30 @@ int main (void)
     int bufSize = 10;
     uint8_t* buf = new uint8_t[bufSize];
     while(run){
-        rr.run(buf,bufSize);
+        rr.run(buf,bufSize,&inAddr, &inPort);
         if(buf[0]=='[' && buf[6]==']'){
             // "[01234]"
             //  0123456
             //  [1:modifiers, 2:mfl, 3:mfr, 4:mbl, 5:mbr]
             byte = bitset<8>(buf[1]);
             //cout << byte << endl;
-            if(byte[0] == 0){ // mfl forward
-                cout << (int)buf[2] << endl;
+            //cout << (uint8_t)byte[2] << endl;
+            if(byte[0] == 1){ // mfl forward
                 frontLeft.setForward(255-(uint8_t)buf[2]);
             }else{ // mfl backward
                 frontLeft.setBackward(255-(uint8_t)buf[2]);
             }
-            if(byte[1] == 0){ // mfr forward
+            if(byte[1] == 1){ // mfr forward
                 frontRight.setForward(255-(uint8_t)buf[3]);
             }else{ // mfr backward
                 frontRight.setBackward(255-(uint8_t)buf[3]);
             }
-            if(byte[2] == 0){ // mbl forward
+            if(byte[2] == 1){ // mbl forward
                 backLeft.setForward(255-(uint8_t)buf[4]);
             }else{ // mbl backward
                 backLeft.setBackward(255-(uint8_t)buf[4]);
             }
-            if(byte[3] == 0){ // mbr forward
+            if(byte[3] == 1){ // mbr forward
                 backRight.setForward(255-(uint8_t)buf[5]);
             }else{ // mbr backward
                 backRight.setBackward(255-(uint8_t)buf[5]);
@@ -106,6 +108,7 @@ int main (void)
                 //<< buf[5] << buf[6] << endl;
             }
         }else if(buf[0]=='[' && buf[2]==']'){
+
             switch(buf[1]){
                 case '-': // Exit
                     frontLeft.stop();
@@ -115,16 +118,18 @@ int main (void)
                     run = false;
                 break;
                 case '@': // Connect //WIP
+                    if(inTerm){
+                        cout << "Connect Request" << endl;
+                        cout << "From: " << inAddr << ":" << inPort << endl;
+                    }
                 break;
             }
         }
     }
-    frontLeft.stop();
-                    backLeft.stop();
-                    frontRight.stop();
-                    backRight.stop();
-                    run = false;
+    stopMotors();
+    run = false;
     delete[]buf;
     if (inTerm)cout << "Stopped....." << endl;
+    exit(0);
     return 0;
 }

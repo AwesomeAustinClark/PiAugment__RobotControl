@@ -29,10 +29,17 @@ Motor::Motor(int pf, int pb, int mode)
             delay(100);
             pinMode(this->pinBackward, OUTPUT);
             delay(100);
+            this->stop();
         break;
         case Motor::ModePwm:
             softPwmCreate(this->pinForward, motorStopValue, motorMaxValue);
             softPwmCreate(this->pinBackward, motorStopValue, motorMaxValue);
+        break;
+        case Motor::ModeAnalog:
+            pinMode(this->pinForward, OUTPUT);
+            delay(100);
+            pinMode(this->pinBackward, OUTPUT);
+            delay(100);
         break;
     }
     std::cout << "Done." << std::endl;
@@ -48,6 +55,10 @@ void Motor::stop(){
         case ModePwm:
             softPwmWrite(this->pinBackward, motorStopValue);
             softPwmWrite(this->pinForward, motorStopValue);
+        break;
+        case ModeAnalog:
+            analogWrite(this->pinBackward, motorStopValue);
+            analogWrite(this->pinForward, motorStopValue);
         break;
     }
 
@@ -65,6 +76,10 @@ void Motor::setForward(uint8_t v)
             softPwmWrite(this->pinBackward, motorStopValue);
             softPwmWrite(this->pinForward, v);
         break;
+        case ModeAnalog:
+            analogWrite(this->pinBackward, motorStopValue);
+            analogWrite(this->pinForward, v);
+        break;
     }
 
 }
@@ -80,6 +95,10 @@ void Motor::setBackward(uint8_t v)
         case ModePwm:
             softPwmWrite(this->pinForward, motorStopValue);
             softPwmWrite(this->pinBackward, v);
+        break;
+        case ModeAnalog:
+            analogWrite(this->pinForward, motorStopValue);
+            analogWrite(this->pinBackward, v);
         break;
     }
 
