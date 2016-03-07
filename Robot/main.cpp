@@ -50,10 +50,10 @@ int inPort;
 int main (void){
     cout << "Setting up...";
     GPIOSETUP();
-    Motor frontLeft = Motor(5,6,Motor::ModeAnalog);
-    Motor frontRight = Motor(24,25, Motor::ModeAnalog);
-    Motor backLeft = Motor(3,2, Motor::ModeAnalog);
-    Motor backRight = Motor(23,18, Motor::ModeAnalog);
+    Motor frontLeft = Motor(5,6,Motor::ModePwm);
+    Motor frontRight = Motor(24,25, Motor::ModePwm);
+    Motor backLeft = Motor(3,2, Motor::ModePwm);
+    Motor backRight = Motor(23,18, Motor::ModePwm);
     cout << "Done." <<endl << "Testing Motors... ";
     stopMotors();
     sleep(2);
