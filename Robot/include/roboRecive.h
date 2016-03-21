@@ -10,8 +10,9 @@ class roboRecive
 {
 public:
     roboRecive();
-    int run(uint8_t*,int);
-    int run(uint8_t*,int,std::string*,int*);
+    bool run(uint8_t*,int, int, int);
+    bool run(uint8_t*,int,sockaddr_in*, int, int);
+    bool send(std::string*, sockaddr_in*);
     virtual ~roboRecive();
 protected:
 private:
