@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 
 /**
  *
@@ -36,13 +37,26 @@ public class easySocket {
     }
     
     void send(String msg_) throws IOException{
-        sendData = msg_.getBytes();
-        socket.send(new DatagramPacket(sendData, sendData.length,remoteIP, port));
+        send(msg_.getBytes());
     }
     
-    DatagramPacket read() throws IOException{
-        socket.receive(receivePacket);
-        return receivePacket;
+    String read(int time_ms) throws IOException{
+        String str;
+        socket.setSoTimeout(time_ms);
+        try{
+            socket.receive(receivePacket);
+            str = new String(receiveData).trim();
+        }catch(java.net.SocketTimeoutException e){
+            str = new String();
+        }
+        socket.setSoTimeout(0);
+        return str;
+    }
+    
+    void close(){
+        if(!socket.isClosed()){
+            socket.close();
+        }
     }
     
     void setup(int myPort_, InetAddress remoteIP_, int remotePort_) throws IOException {

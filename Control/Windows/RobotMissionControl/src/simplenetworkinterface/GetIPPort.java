@@ -5,7 +5,10 @@
  */
 package simplenetworkinterface;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -119,24 +122,37 @@ public class GetIPPort extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void EnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EnterActionPerformed
+        GetIP.setEditable(false);
+        getPort.setEditable(false);
+        Enter.setEnabled(false);
+        Cancel.setEnabled(false);
+        boolean bool = true;
+        Thread ct = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                initialized=connect();               
+            }
+        });
         try {
             IP = InetAddress.getByName(GetIP.getText());
         } catch (Exception e) {
             ErrorField.setText("Invalid IP/Host name. Example '192.168.1.103' or 'raspberrypi'");
-            return;
+            bool = false;
         }
-        try{
-            Port = Integer.parseInt(getPort.getText());
-            if(Port>65535 || Port<0){
-                throw new Exception("Invalid Port");
-            }
-        }catch(Exception e){
+        Port = Integer.parseInt(getPort.getText());
+        if(Port>65535 || Port<0){
+            Port = 4000;
+            bool = false;
             ErrorField.setText("Invalid Port num. Port is a num from 0 to 65535");
-            return;
         }
-        initialized = true;
-        GetIP.setEditable(false);
-        getPort.setEditable(false);
+        if(bool){
+            ct.start();
+        }
+        GetIP.setEditable(true);
+        getPort.setEditable(true);
+        Enter.setEnabled(true);
+        Cancel.setEnabled(true);
+        
     }//GEN-LAST:event_EnterActionPerformed
 
     private void CancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelActionPerformed
@@ -148,6 +164,49 @@ public class GetIPPort extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_getPortActionPerformed
 
+    boolean connect(){
+        String str;
+        easySocket server = new easySocket();
+            try {
+                
+                server.setup(Port, IP, Port);
+                //System.out.println("Connecting..."+IP+":"+Port);
+                for(int i=0;i<6;++i){
+                    // [control connection robot]
+                    // ? unknown status
+                    // # control/robot is here
+                    // * telling connection locked (basically will not act on any data from any other IP)
+                    // ~ I recived you (This is for somewhat mundane data confirmation)
+                    server.send("[#-?]");
+                    ErrorField.setText("Connecting....");
+                    if("[#-#]".equals(server.read(10000))){
+                        ErrorField.setText("Connecting.... Done");
+                        //System.out.println("Done");
+                        for(int x=0;x<6;x++){
+                            server.send("[*-#]");
+                            //System.out.println("Locking...");
+                            ErrorField.setText("Locking....");
+                            if("[*-*]".equals(server.read(10000))){
+                                ErrorField.setText("Locking.... Done");
+                                server.send("[~]");
+                                server.send("[~]");
+                                server.send("[~]");                             
+                                //System.out.println("Done");
+                                server.close();
+                                ErrorField.setText("Connected");
+                                return true;
+                            }
+                        }
+                    }
+                }
+                //System.out.println("Connected And locked in");
+            } catch (IOException ex) {
+                Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            server.close();
+            return false;
+        }
+    
     /**
      * @param args the command line arguments
      */

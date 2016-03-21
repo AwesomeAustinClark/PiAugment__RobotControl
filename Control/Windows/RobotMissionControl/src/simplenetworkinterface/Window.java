@@ -12,6 +12,8 @@ import java.awt.Graphics2D;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
@@ -27,7 +29,7 @@ import net.java.games.input.Controller;
  * @author Grady
  */
 public class Window extends javax.swing.JFrame{
-    public Thread listen;
+    public Thread sendReceiveThread;
     public easySocket server;
     public int motorFrontLeft = 0;
     public int motorFrontRight = 0;
@@ -132,18 +134,35 @@ public class Window extends javax.swing.JFrame{
     public void setup() throws IOException{
         server = new easySocket();
         server.setup(PORT,IP,PORT);
-        listen = new Thread(new Runnable(){
+        final Window win = this;
+        gamepadThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                // WIP
-                server.send("[@]");
-                server.send("[@]");
-                server.send("[@]");
-                
-                } catch (IOException ex) {
-                    Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                GamePadControl.setup();
+                while(!exitBothSides){
+                    GamePadControl.searchForControllers();
+                    if(!GamePadControl.foundControllers.isEmpty()){
+                        for(int i=0;i<GamePadControl.foundControllers.size();++i){
+                            addControllerName(GamePadControl.foundControllers.get(i).toString());   
+                        }
+                        ShowControllerData(win);
+                    }else{
+                        GamePadComboBox.removeAllItems();
+                        GamePadComboBox.addItem("No Controller!");
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
                 }
+                axisLabel.setText("x: "+xAxisPercentage+" y: "+yAxisPercentage);                
+            }
+        });
+        gamepadThread.start();
+        sendReceiveThread = new Thread(new Runnable(){
+            @Override
+            public void run() {
                 while(!exitBothSides){
                     try {
                         int mfl = 0;
@@ -235,13 +254,14 @@ public class Window extends javax.swing.JFrame{
                             //right = cat[0];
                             left = (x/50)*100;
                             right = (y/50)*100;
+                            // DEADZONE
                             if(left>=-10 && left<=10){left=0;}
                             if(right>=-10 && right<=10){right=0;}
+                            // DEADZONE
                             //System.out.println(" <> "+right+" : "+left);
                             server.send(makeStringToSend((int)left, (int)right, (int)left, (int)right));
                             
                         }
-                        axisLabel.setText("x: "+xAxisPercentage+" y: "+yAxisPercentage);
                         //System.out.println(toSend);
                         
                         
@@ -275,11 +295,11 @@ public class Window extends javax.swing.JFrame{
                 } catch (IOException ex) {
                     Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                                
+                server.close();       
             }
             
         });
-        listen.start();
+        sendReceiveThread.start();
     }
 
     /**
@@ -486,7 +506,7 @@ public class Window extends javax.swing.JFrame{
     
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         try {
-            listen.join(1000);
+            sendReceiveThread.join(1000);
             gamepadThread.join(1000);
         } catch (InterruptedException ex) {
             Logger.getLogger(Window.class.getName()).log(Level.WARNING, null, ex);
@@ -768,17 +788,21 @@ public class Window extends javax.swing.JFrame{
         }
     }
     
-    public static void pbc(){
+    public static void test() throws IOException{
         // take int (32bit) and compress it to 1 byte
         //System.out.println("["+((char)((byte)(33)))+"]");
         //test
         //int i = (int)(((2)/(double)100)*93);
         //System.out.println("["+((char)((byte)(i)))+"]");
+        easySocket es = new easySocket();
+        es.setup(4000, InetAddress.getLocalHost(), 4000);
+        //es.send("Connect");
+        System.out.println(es.read(1000));
     }
     
     static Thread gamepadThread;
     public static void main(String args[]) throws IOException, InterruptedException {
-        pbc();
+        //test();
         GetIPPort getWin = new GetIPPort();
         final Window window = new Window();
         /*
@@ -787,6 +811,18 @@ public class Window extends javax.swing.JFrame{
         window.makeStringToSend(-50, -80, -50, 0);
         window.makeStringToSend(50, 50, 80, 100);
         window.makeStringToSend(0, -80, -50, 0);
+        */
+        /*
+        
+                try {
+                // WIP
+                server.send("[@]");
+                server.send("[@]");
+                server.send("[@]");
+                
+                } catch (IOException ex) {
+                    Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                }
         */
         getWin.setVisible(true);
         while(getWin.initialized==false){
@@ -803,36 +839,9 @@ public class Window extends javax.swing.JFrame{
         window.setIP(getWin.IP);
         window.setPort(getWin.Port);
         getWin.dispatchEvent(new WindowEvent(getWin, WindowEvent.WINDOW_CLOSING));
-        
-        
-        window.setVisible(true);
-        gamepadThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GamePadControl.setup();
-                while(!exitBothSides){
-                    GamePadControl.searchForControllers();
-                    if(!GamePadControl.foundControllers.isEmpty()){
-                        for(int i=0;i<GamePadControl.foundControllers.size();++i){
-                            window.addControllerName(GamePadControl.foundControllers.get(i).toString());   
-                        }
-                        ShowControllerData(window);
-                    }else{
-                        GamePadComboBox.removeAllItems();
-                        GamePadComboBox.addItem("No Controller!");
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-                
-            }
-        });
-        gamepadThread.start();
         //window.ipField.setText("Pi: "+server.IP.toString()+" Port: "+server.port+" | ");
         //window.connectionBar.setValues100);
         window.setup();
+        window.setVisible(true);
     }
 }
