@@ -63,11 +63,12 @@ bool roboRecive::run(uint8_t* buf, int bufSize, int timeoutSec, int timeoutMills
     memset(buf, '\0',bufSize);
     //cout << "is: " << FD_ISSET(sock,&rfds);
     retval = select(sock+1, &rfds, NULL, &efds, &tv);
-    cout << retval << endl;
+    //cout << retval << endl;
     //cout << "is2: " << FD_ISSET(sock,&rfds);
     //retval=1;
     //cout << "r: " << retval << endl;
-    if (retval == -1){
+    if (retval == -1)
+    {
         perror("select()");
         rb=false;
     }
@@ -80,7 +81,8 @@ bool roboRecive::run(uint8_t* buf, int bufSize, int timeoutSec, int timeoutMills
         /* FD_ISSET(0, &rfds) will be true. */
     }
     else
-    { // Nothing recived
+    {
+        // Nothing recived
         rb=false;
     }
     //if (n < 0) error("recvfrom");

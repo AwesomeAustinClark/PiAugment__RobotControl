@@ -50,17 +50,6 @@ void setForward()
     backLeft.setForward(255);
     backRight.setForward(255);
 }
-//compareUint8_tArrayAndstring
-bool compare(uint8_t* array, int arraySize, string str){
-    bool bl = true;
-    for(int i=0;i<arraySize;++i){
-        if(array[i] != (uint8_t)str[i]){
-        cout << array[i] << str[i] <<endl;
-            bl=false;
-        }
-    }
-    return bl;
-}
 
 sockaddr_in in;
 sockaddr_in to;
@@ -104,10 +93,16 @@ int main (void)
     bool exitLoops = false;
     string str;
     //Handshake/Connect
-    //cout << "Waiting for handshake" << endl;
+    if(inTerm){
+        cout << "Waiting for handshake" << endl;
+    }
     while(!exitLoops){
         if(rr.run(buf,bufSize,&in, 1, 0) && buf[0]=='[' && buf[1]=='#' && buf[2]=='-' && buf[3]=='?' && buf[4]==']'){
             //cout << "Got connection from " << in.sin_addr.s_addr << ':' << in.sin_port<< endl;
+            if(inTerm)
+            {
+                cout << "Connect Request From: " << in.sin_addr.s_addr << ":" << in.sin_port << endl;
+            }
             to = in;
             for(int i=0;i<6 && !exitLoops;++i){
                 rr.send(new string("[#-#]"),&to);
@@ -123,10 +118,14 @@ int main (void)
             }
         }
     }
+    if(inTerm)
+    {
+        cout << "Connection locked in, to: " << to.sin_addr.s_addr << ":" << to.sin_port << endl;
+    }
     //Handshake/Connect
     while(run)
     {
-        if(rr.run(buf,bufSize,&in, 0, 10000) && in.sin_addr.s_addr==to.sin_addr.s_addr && in.sin_port==to.sin_port)
+        if(rr.run(buf,bufSize,&in, 0, 500) && in.sin_addr.s_addr==to.sin_addr.s_addr && in.sin_port==to.sin_port)
         {
             gettimeofday (&last, NULL);
             if(buf[0]=='[' && buf[6]==']')
@@ -187,21 +186,24 @@ int main (void)
                     backRight.stop();
                     run = false;
                     break;
-                case '@': // Connect //WIP
-                    if(inTerm)
-                    {
-                        cout << "Connect Request" << endl;
-                        cout << "From: " << in.sin_addr.s_addr << ":" << in.sin_port << endl;
-                    }
-                    break;
+
                 }
             }
         }
         gettimeofday (&current, NULL);
-        if(((current.tv_usec-last.tv_usec)/1000)>50)
+        if(((current.tv_usec-last.tv_usec)/1000)>500)
         {
-           cout << "Connection Lost!" << endl;
+            //cout << "Connection Lost!" << endl;
+
+            if(inTerm){
+                cout << "Connection LOST! > " << current.tv_sec << endl;
+            }
             stopMotors();
+            frontLeft.stop();
+                    backLeft.stop();
+                    frontRight.stop();
+                    backRight.stop();
+
         }
         usleep(1);
     }
