@@ -198,8 +198,9 @@ int main (void)
             }
         }
         gettimeofday (&current, NULL);
-        if((current.tv_usec-last.tv_usec/1000)>50)
+        if(((current.tv_usec-last.tv_usec)/1000)>50)
         {
+           cout << "Connection Lost!" << endl;
             stopMotors();
         }
         usleep(1);

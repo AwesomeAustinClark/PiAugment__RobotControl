@@ -61,10 +61,10 @@ bool roboRecive::run(uint8_t* buf, int bufSize, int timeoutSec, int timeoutMills
     //tv.tv_sec = 2;
     //tv.tv_usec =  1;
     memset(buf, '\0',bufSize);
-    cout << "is: " << FD_ISSET(sock,&rfds);
+    //cout << "is: " << FD_ISSET(sock,&rfds);
     retval = select(sock+1, &rfds, NULL, &efds, &tv);
     cout << retval << endl;
-    cout << "is2: " << FD_ISSET(sock,&rfds);
+    //cout << "is2: " << FD_ISSET(sock,&rfds);
     //retval=1;
     //cout << "r: " << retval << endl;
     if (retval == -1){
