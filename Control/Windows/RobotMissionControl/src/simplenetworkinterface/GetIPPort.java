@@ -122,15 +122,22 @@ public class GetIPPort extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void EnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EnterActionPerformed
-        GetIP.setEditable(false);
-        getPort.setEditable(false);
-        Enter.setEnabled(false);
-        Cancel.setEnabled(false);
         boolean bool = true;
         Thread ct = new Thread(new Runnable() {
             @Override
             public void run() {
-                initialized=connect();               
+                GetIP.setEditable(false);
+                getPort.setEditable(false);
+                Enter.setEnabled(false);
+                Cancel.setEnabled(false);
+                initialized=connect();
+                if(initialized==false){
+                    ErrorField.setText("Failed to connect!");
+                } 
+                GetIP.setEditable(true);
+                getPort.setEditable(true);
+                Enter.setEnabled(true);
+                Cancel.setEnabled(true); 
             }
         });
         try {
@@ -148,16 +155,13 @@ public class GetIPPort extends javax.swing.JFrame {
         if(bool){
             ct.start();
         }
-        GetIP.setEditable(true);
-        getPort.setEditable(true);
-        Enter.setEnabled(true);
-        Cancel.setEnabled(true);
-        
+              
     }//GEN-LAST:event_EnterActionPerformed
 
     private void CancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelActionPerformed
-        initialized = true;
         exit = true;
+        initialized = true;
+        
     }//GEN-LAST:event_CancelActionPerformed
 
     private void getPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getPortActionPerformed
@@ -166,27 +170,29 @@ public class GetIPPort extends javax.swing.JFrame {
 
     boolean connect(){
         String str;
+        int timeoutMills = 1000;
+        //int times = 0;
         easySocket server = new easySocket();
             try {
                 
                 server.setup(Port, IP, Port);
                 //System.out.println("Connecting..."+IP+":"+Port);
-                for(int i=0;i<6;++i){
+                for(int i=0,times=1;i<6;++i,times++){
                     // [control connection robot]
                     // ? unknown status
                     // # control/robot is here
                     // * telling connection locked (basically will not act on any data from any other IP)
                     // ~ I recived you (This is for somewhat mundane data confirmation)
                     server.send("[#-?]");
-                    ErrorField.setText("Connecting....");
-                    if("[#-#]".equals(server.read(10000))){
+                    ErrorField.setText("Connecting...."+times);
+                    if("[#-#]".equals(server.read(timeoutMills))){
                         ErrorField.setText("Connecting.... Done");
                         //System.out.println("Done");
-                        for(int x=0;x<6;x++){
+                        for(int x=0,times2=1;x<6;x++,times2++){
                             server.send("[*-#]");
                             //System.out.println("Locking...");
-                            ErrorField.setText("Locking....");
-                            if("[*-*]".equals(server.read(10000))){
+                            ErrorField.setText("Locking...."+times2);
+                            if("[*-*]".equals(server.read(timeoutMills))){
                                 ErrorField.setText("Locking.... Done");
                                 server.send("[~]");
                                 server.send("[~]");
