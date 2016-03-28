@@ -12,7 +12,8 @@
 
 #include "Motor.h"
 #include "roboRecive.h"
-
+#include "UltraSonicSensor.h"
+#include "Global.h"
 
 //http://hertaville.com/2012/11/18/introduction-to-accessing-the-raspberry-pis-gpio-in-c/
 
@@ -51,25 +52,36 @@ void setForward()
     backRight.setForward(255);
 }
 
-struct timeval tempTv;
-void getTimeOfDayMills64(uint64_t* time){
-    gettimeofday(&tempTv,NULL);
-    (time[0]) = tempTv.tv_sec*(uint64_t)1000000+tempTv.tv_usec;
-}
-
 sockaddr_in in;
 sockaddr_in to;
 uint64_t last = 0;
-uint64_t current = 0;
+uint64_t current = -1;
 bool connected = true;
 int main (void)
 {
     cout << "Setting up...";
     GPIOSETUP();
+    /*
+    UltraSonicSensor uss(17, 27);
+    int i=0;
+    while(true){
+        current=-1;
+        uss.send();
+        while(current==-1){
+            uss.recive(&current);
+            usleep(10);
+        }
+        cout << "time: " << current << ' ' << i++ << endl;
+        usleep((unsigned int) 500000);
+    }
+    return 1;
+    */
     Motor frontLeft = Motor(5,6,Motor::ModePwm);
     Motor frontRight = Motor(24,25, Motor::ModePwm);
     Motor backLeft = Motor(3,2, Motor::ModePwm);
     Motor backRight = Motor(23,18, Motor::ModePwm);
+
+
     stopMotors();
     cout << "Done." <<endl;
     /*
@@ -199,11 +211,10 @@ int main (void)
         }
         getTimeOfDayMills64 (&current);
         //cout <<  current << endl;
-        if(((current-last))>1100000)
+        if((current-last)>1100000)
         {
-            //cout << "Connection Lost!" << endl;
             if(inTerm && connected){
-                cout << "Connection LOST! > " << current << endl;
+                cout << "Connection LOST!   > " << current << endl;
                 connected = false;
             }
             stopMotors();
@@ -211,7 +222,6 @@ int main (void)
             backLeft.stop();
             frontRight.stop();
             backRight.stop();
-
         }else{
             if(!connected){
                 connected = true;

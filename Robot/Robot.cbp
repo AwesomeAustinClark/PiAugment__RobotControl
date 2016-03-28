@@ -27,6 +27,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
@@ -41,10 +42,14 @@
 		<Linker>
 			<Add library="/usr/lib/libwiringPi.so" />
 		</Linker>
+		<Unit filename="include/Global.h" />
 		<Unit filename="include/Motor.h" />
+		<Unit filename="include/UltraSonicSensor.h" />
 		<Unit filename="include/roboRecive.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/Global.cpp" />
 		<Unit filename="src/Motor.cpp" />
+		<Unit filename="src/UltraSonicSensor.cpp" />
 		<Unit filename="src/roboRecive.cpp" />
 		<Extensions>
 			<code_completion />

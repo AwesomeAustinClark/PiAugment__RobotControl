@@ -12,8 +12,6 @@ import java.awt.Graphics2D;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
@@ -336,6 +334,9 @@ public class Window extends javax.swing.JFrame{
             public void windowClosed(java.awt.event.WindowEvent evt) {
                 formWindowClosed(evt);
             }
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
         });
 
         ipField.setEditable(false);
@@ -505,12 +506,7 @@ public class Window extends javax.swing.JFrame{
     }// </editor-fold>//GEN-END:initComponents
     
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
-        try {
-            sendReceiveThread.join(1000);
-            gamepadThread.join(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Window.class.getName()).log(Level.WARNING, null, ex);
-        }
+        
     }//GEN-LAST:event_formWindowClosed
 
     private void controlFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_controlFieldKeyPressed
@@ -536,12 +532,6 @@ public class Window extends javax.swing.JFrame{
 
     private void controlFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_controlFieldKeyReleased
         if(evt.getKeyChar() == '\b'){
-            exitBothSides = true;
-            try {
-                Thread.sleep(250);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
-            }
             dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
         }
         char key = evt.getKeyChar();
@@ -566,6 +556,22 @@ public class Window extends javax.swing.JFrame{
     private void ckFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_ckFieldActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        exitBothSides = true;
+        try {
+            Thread.sleep(250);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            
+            gamepadThread.join(1000);
+            sendReceiveThread.join(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Window.class.getName()).log(Level.WARNING, null, ex);
+        }
+    }//GEN-LAST:event_formWindowClosing
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
