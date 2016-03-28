@@ -1,5 +1,0 @@
-raspberry
-
-sudo tightvncserver :1 -geometry 1420x800
-
-sudo "/root/Desktop/PiAugment__RobotControl/Robot/bin/Release/Robotv2"

@@ -51,10 +51,17 @@ void setForward()
     backRight.setForward(255);
 }
 
+struct timeval tempTv;
+void getTimeOfDayMills64(uint64_t* time){
+    gettimeofday(&tempTv,NULL);
+    (time[0]) = tempTv.tv_sec*(uint64_t)1000000+tempTv.tv_usec;
+}
+
 sockaddr_in in;
 sockaddr_in to;
-struct timeval last;
-struct timeval current;
+uint64_t last = 0;
+uint64_t current = 0;
+bool connected = true;
 int main (void)
 {
     cout << "Setting up...";
@@ -127,7 +134,7 @@ int main (void)
     {
         if(rr.run(buf,bufSize,&in, 0, 500) && in.sin_addr.s_addr==to.sin_addr.s_addr && in.sin_port==to.sin_port)
         {
-            gettimeofday (&last, NULL);
+            getTimeOfDayMills64(&last);
             if(buf[0]=='[' && buf[6]==']')
             {
                 // "[01234]"
@@ -190,20 +197,28 @@ int main (void)
                 }
             }
         }
-        gettimeofday (&current, NULL);
-        if(((current.tv_usec-last.tv_usec)/1000)>500)
+        getTimeOfDayMills64 (&current);
+        //cout <<  current << endl;
+        if(((current-last))>1100000)
         {
             //cout << "Connection Lost!" << endl;
-
-            if(inTerm){
-                cout << "Connection LOST! > " << current.tv_sec << endl;
+            if(inTerm && connected){
+                cout << "Connection LOST! > " << current << endl;
+                connected = false;
             }
             stopMotors();
             frontLeft.stop();
-                    backLeft.stop();
-                    frontRight.stop();
-                    backRight.stop();
+            backLeft.stop();
+            frontRight.stop();
+            backRight.stop();
 
+        }else{
+            if(!connected){
+                connected = true;
+                if(inTerm){
+                    cout << "Connection Gained! > " << current << endl;
+                }
+            }
         }
         usleep(1);
     }
