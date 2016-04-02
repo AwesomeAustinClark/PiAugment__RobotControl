@@ -37,7 +37,7 @@ public class Window extends javax.swing.JFrame{
     //Keyboard
     public int nws = 0;
     public int nad = 0;
-    public static boolean exitBothSides = false;
+    public boolean exitBothSides = false;
     
     
     InetAddress IP;
@@ -120,12 +120,10 @@ public class Window extends javax.swing.JFrame{
     public double[] tankdrive(double x,double y, double left,double right) {
         // x is -50 to 50
         // y is -50 to 50
-        left = 255;
-        right = 255;
         right = (y/50)*100;
         left =  (x/50)*100;
         
-        System.out.print(left+" : "+right);
+        //System.out.print(left+" : "+right);
         return new double[]{left,right};
     }
     
@@ -152,9 +150,9 @@ public class Window extends javax.swing.JFrame{
                         } catch (InterruptedException ex) {
                             Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                    }
+                    } 
                 }
-                axisLabel.setText("x: "+xAxisPercentage+" y: "+yAxisPercentage);                
+                              
             }
         });
         gamepadThread.start();
@@ -252,11 +250,14 @@ public class Window extends javax.swing.JFrame{
                             //right = cat[0];
                             left = (x/50)*100;
                             right = (y/50)*100;
+                            //left*=-1;
+                            //right*=-1;
                             // DEADZONE
                             if(left>=-10 && left<=10){left=0;}
                             if(right>=-10 && right<=10){right=0;}
                             // DEADZONE
                             //System.out.println(" <> "+right+" : "+left);
+                            //System.out.println("Left: "+left+" Right: "+right);
                             server.send(makeStringToSend((int)left, (int)right, (int)left, (int)right));
                             
                         }
@@ -273,6 +274,9 @@ public class Window extends javax.swing.JFrame{
                             }
                         }
                         */
+                        if(buttons[12]){
+                            exitWindow();
+                        }
                         Thread.sleep(100);
                     } catch (IOException | InterruptedException ex) {
                         Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
@@ -327,6 +331,7 @@ public class Window extends javax.swing.JFrame{
         hatSwitchPanel = new javax.swing.JPanel();
         axisForlabel = new javax.swing.JLabel();
         axisLabel = new javax.swing.JLabel();
+        GamepadSupported = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -421,6 +426,8 @@ public class Window extends javax.swing.JFrame{
             .addGap(0, 0, Short.MAX_VALUE)
         );
 
+        GamepadSupported.setEditable(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -443,7 +450,9 @@ public class Window extends javax.swing.JFrame{
                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(GamePadComboBox, 0, 260, Short.MAX_VALUE)
+                                        .addComponent(GamepadSupported))))
                             .addGap(74, 74, 74)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -475,8 +484,11 @@ public class Window extends javax.swing.JFrame{
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(GamepadSupported, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(GamePadComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -511,7 +523,7 @@ public class Window extends javax.swing.JFrame{
 
     private void controlFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_controlFieldKeyPressed
         char key = evt.getKeyChar();
-        //System.out.println(key);
+        //System.out.println(evt.getExtendedKeyCode()+" : "+key);
         switch (key) {
             case 'w':
                 nws = 1;
@@ -565,9 +577,12 @@ public class Window extends javax.swing.JFrame{
             Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
         }
         try {
-            
-            gamepadThread.join(1000);
-            sendReceiveThread.join(1000);
+            if(gamepadThread!=null && gamepadThread.isAlive()){
+                gamepadThread.join(1000);
+            }
+            if(sendReceiveThread!=null && sendReceiveThread.isAlive()){
+                sendReceiveThread.join(1000);
+            }
         } catch (InterruptedException ex) {
             Logger.getLogger(Window.class.getName()).log(Level.WARNING, null, ex);
         }
@@ -576,12 +591,13 @@ public class Window extends javax.swing.JFrame{
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel ButtonPanel;
-    public static javax.swing.JComboBox<String> GamePadComboBox;
+    public javax.swing.JComboBox<String> GamePadComboBox;
+    public javax.swing.JTextField GamepadSupported;
     private javax.swing.JPanel axisForPanel;
     private javax.swing.JLabel axisForlabel;
     private javax.swing.JLabel axisLabel;
     private javax.swing.JPanel axisXYPanel;
-    public static javax.swing.JComboBox<String> captureType;
+    public javax.swing.JComboBox<String> captureType;
     private javax.swing.JTextField ckField;
     public javax.swing.JTextPane commandField;
     private javax.swing.JProgressBar connectionBar;
@@ -600,8 +616,8 @@ public class Window extends javax.swing.JFrame{
     }
     
     public void showControllerDisconnected(){
-        GamePadComboBox.removeAllItems();
-        GamePadComboBox.addItem("Controller disconnected!");
+        this.GamePadComboBox.removeAllItems();
+        this.GamePadComboBox.addItem("Controller disconnected!");
     }
     
     public int getSelectedControllerName(){
@@ -677,26 +693,31 @@ public class Window extends javax.swing.JFrame{
         
         g2d.fillOval(x, y, smallCircleSize, smallCircleSize);
     }
+    
+    void exitWindow(){
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }
+    
     // X axis and Y axis
-    static int xAxisPercentage = 0;
-    static int yAxisPercentage = 0; 
-    static int rxAxisPercentage = 0;
-    static int ryAxisPercentage = 0; 
-    static float hatSwitchPosition = 0;
-    static float axisValue = 0;
-    static int axisValueInPercentage = 0;
-    public static void ShowControllerData(Window win){
+    int xAxisPercentage = 0;
+    int yAxisPercentage = 0; 
+    int lyAxisPercentage = 0;
+    int ryAxisPercentage = 0; 
+    float hatSwitchPosition = 0;
+    float axisValue = 0;
+    int axisValueInPercentage = 0;
+    boolean buttons[] = new boolean[30];
+    public void ShowControllerData(Window win){
         while(!exitBothSides){
             // Currently selected controller.
             int selectedControllerIndex = win.getSelectedControllerName();
             Controller controller = GamePadControl.foundControllers.get(selectedControllerIndex);
-
+                
             // Pull controller for current data, and break while loop if controller is disconnected.
             if( !controller.poll() ){
                 win.showControllerDisconnected();
                 break;
             }
-            
             
             // JPanel for other axes.
             JPanel axesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 2));
@@ -721,6 +742,7 @@ public class Window extends javax.swing.JFrame{
                     if(component.getPollData() == 0.0f)
                         isItPressed = false;
                     
+                    buttons[Integer.parseInt(componentIdentifier.getName())] = isItPressed;
                     // Button index
                     String buttonIndex;
                     buttonIndex = component.getIdentifier().toString();
@@ -760,12 +782,30 @@ public class Window extends javax.swing.JFrame{
                         yAxisPercentage = axisValueInPercentage;
                         continue; // Go to next component.
                     }
-                    
-                    if("z".equals(component.getIdentifier().toString())){
-                        rxAxisPercentage = axisValueInPercentage;
-                    }
-                    if("rz".equals(component.getIdentifier().toString())){
-                        ryAxisPercentage = axisValueInPercentage;
+                    if("Controller (XBOX 360 For Windows)".equals(controller.getName())){
+                        if("y".equals(component.getIdentifier().toString())){
+                            lyAxisPercentage = axisValueInPercentage;
+                        }
+                        if("ry".equals(component.getIdentifier().toString())){
+                            ryAxisPercentage = axisValueInPercentage;
+                        }
+                        GamepadSupported.setText("Gamepad Supported");
+                    }else if("BDA GP1".equals(controller.getName())){
+                        if("z".equals(component.getIdentifier().toString())){
+                            lyAxisPercentage = axisValueInPercentage;
+                        }
+                        if("rz".equals(component.getIdentifier().toString())){
+                            ryAxisPercentage = axisValueInPercentage;
+                        }
+                        GamepadSupported.setText("Gamepad Supported");
+                    }else{
+                        if("y".equals(component.getIdentifier().toString())){
+                            lyAxisPercentage = axisValueInPercentage;
+                        }
+                        if("ry".equals(component.getIdentifier().toString())){
+                            ryAxisPercentage = axisValueInPercentage;
+                        }
+                        GamepadSupported.setText("Gamepad Unsupported, milage may vary");
                     }
                     
                     // Other axis
@@ -774,6 +814,7 @@ public class Window extends javax.swing.JFrame{
                     progressBar.setValue(axisValueInPercentage);
                     axesPanel.add(progressBarLabel);
                     axesPanel.add(progressBar);
+                    //System.out.println(component.getIdentifier().toString()+": "+axisValueInPercentage);
                 }
             }
             
@@ -784,7 +825,6 @@ public class Window extends javax.swing.JFrame{
             win.setXYAxis(xAxisPercentage, yAxisPercentage);
             // add other axes panel to window.
             win.addAxisPanel(axesPanel);
-            
             // We have to give processor some rest.
             try {
                 Thread.sleep(25);
@@ -794,7 +834,8 @@ public class Window extends javax.swing.JFrame{
         }
     }
     
-    public static void test() throws IOException{
+    
+    public void test() throws IOException{
         // take int (32bit) and compress it to 1 byte
         //System.out.println("["+((char)((byte)(33)))+"]");
         //test
@@ -806,11 +847,11 @@ public class Window extends javax.swing.JFrame{
         System.out.println(es.read(1000));
     }
     
-    static Thread gamepadThread;
+    Thread gamepadThread;
     public static void main(String args[]) throws IOException, InterruptedException {
         //test();
         GetIPPort getWin = new GetIPPort();
-        final Window window = new Window();
+        Window window = new Window();
         /*
         window.makeStringToSend(-100, -80, -50, 0);
         window.makeStringToSend(100, 50, 80, 100);

@@ -42,6 +42,7 @@ public class GetIPPort extends javax.swing.JFrame {
         Enter = new javax.swing.JToggleButton();
         Cancel = new javax.swing.JToggleButton();
         ErrorField = new javax.swing.JTextField();
+        Enter_Bypass = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setResizable(false);
@@ -80,6 +81,13 @@ public class GetIPPort extends javax.swing.JFrame {
 
         ErrorField.setEditable(false);
 
+        Enter_Bypass.setText("Enter {Bypass}");
+        Enter_Bypass.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Enter_BypassActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -90,6 +98,8 @@ public class GetIPPort extends javax.swing.JFrame {
                     .addComponent(ErrorField)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(Enter)
+                        .addGap(55, 55, 55)
+                        .addComponent(Enter_Bypass)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(Cancel))
                     .addComponent(getPort)
@@ -114,7 +124,8 @@ public class GetIPPort extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(Enter)
-                    .addComponent(Cancel))
+                    .addComponent(Cancel)
+                    .addComponent(Enter_Bypass))
                 .addContainerGap())
         );
 
@@ -153,7 +164,9 @@ public class GetIPPort extends javax.swing.JFrame {
             ErrorField.setText("Invalid Port num. Port is a num from 0 to 65535");
         }
         if(bool){
-            ct.start();
+            if(ct.isAlive()==false){
+                ct.start();    
+            }
         }
               
     }//GEN-LAST:event_EnterActionPerformed
@@ -167,6 +180,23 @@ public class GetIPPort extends javax.swing.JFrame {
     private void getPortActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getPortActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_getPortActionPerformed
+
+    private void Enter_BypassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Enter_BypassActionPerformed
+        boolean bool = true;
+        try {
+            IP = InetAddress.getByName(GetIP.getText());
+        } catch (Exception e) {
+            ErrorField.setText("Invalid IP/Host name. Example '192.168.1.103' or 'raspberrypi'");
+            bool = false;
+        }
+        Port = Integer.parseInt(getPort.getText());
+        if(Port>65535 || Port<0){
+            Port = 4000;
+            bool = false;
+            ErrorField.setText("Invalid Port num. Port is a num from 0 to 65535");
+        }
+        initialized = bool;
+    }//GEN-LAST:event_Enter_BypassActionPerformed
 
     boolean connect(){
         String str;
@@ -252,6 +282,7 @@ public class GetIPPort extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JToggleButton Cancel;
     private javax.swing.JToggleButton Enter;
+    private javax.swing.JButton Enter_Bypass;
     private javax.swing.JTextField ErrorField;
     private javax.swing.JTextField GetIP;
     private javax.swing.JTextField HelpField2;

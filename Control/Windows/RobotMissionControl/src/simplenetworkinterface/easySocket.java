@@ -33,7 +33,7 @@ public class easySocket {
         if(msg_.length==0){
             return;
         }
-        socket.send(new DatagramPacket(msg_, msg_.length,remoteIP, port));
+        socket.send(new DatagramPacket(msg_, msg_.length,remoteIP, remotePort));
     }
     
     void send(String msg_) throws IOException{

@@ -30,6 +30,8 @@
                   <Component id="ErrorField" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="Enter" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="55" max="-2" attributes="0"/>
+                      <Component id="Enter_Bypass" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="Cancel" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -59,6 +61,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="Enter" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="Cancel" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="Enter_Bypass" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -120,6 +123,14 @@
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="Enter_Bypass">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Enter {Bypass}"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="Enter_BypassActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>
