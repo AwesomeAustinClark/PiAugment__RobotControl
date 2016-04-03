@@ -8,7 +8,9 @@
 #include <bitset>
 #include <vector>
 #include <sys/time.h>
+#include <arpa/inet.h>
 #include <string>
+#include <cstring>
 
 #include "Motor.h"
 #include "roboRecive.h"
@@ -52,8 +54,61 @@ void setForward()
     backRight.setForward(255);
 }
 
+//Convert a struct sockaddr address to a string, IPv4 and IPv6:
+void get_ip_str(const struct sockaddr *sa, vector<char>* str){
+    char s[INET6_ADDRSTRLEN];
+    switch(sa->sa_family) {
+        case AF_INET:
+            //char s[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
+                    s, INET_ADDRSTRLEN);
+            (*str).clear();
+            for(int i=0;i<INET_ADDRSTRLEN;++i){
+                (*str).push_back(s[i]);
+            }
+            break;
+
+        case AF_INET6:
+
+            inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
+                    s, INET6_ADDRSTRLEN);
+            (*str).clear();
+            for(int i=0;i<INET6_ADDRSTRLEN;++i){
+                (*str).push_back(s[i]);
+            }
+            break;
+
+        default:
+        (*str).clear();
+        // = "Unknown AF";
+        (*str).push_back('U');
+        (*str).push_back('n');
+        (*str).push_back('k');
+        (*str).push_back('n');
+        (*str).push_back('o');
+        (*str).push_back('w');
+        (*str).push_back('n');
+        (*str).push_back(' ');
+        (*str).push_back('A');
+        (*str).push_back('F');
+    }
+}
+
+void printCharVector(vector<char>* cv){
+    if(cv==NULL || (*cv).empty()){
+        return;
+    }
+    for(unsigned int i=0;i<(*cv).size();++i){
+        cout << (*cv)[i];
+    }
+}
+
 sockaddr_in in;
+vector<char> in_ip;
+unsigned short in_port;
 sockaddr_in to;
+vector<char> to_ip;
+unsigned short to_port;
 uint64_t last = 0;
 uint64_t current = -1;
 bool connected = true;
@@ -107,10 +162,9 @@ int main (void)
     bitset<8> byte(0);
     int bufSize = 10;
     uint8_t* buf = new uint8_t[bufSize];
-
     stopMotors();
     bool exitLoops = false;
-    string str;
+
     //Handshake/Connect
     if(inTerm){
         cout << "Waiting for handshake" << endl;
@@ -118,11 +172,19 @@ int main (void)
     while(!exitLoops){
         if(rr.run(buf,bufSize,&in, 1, 0) && buf[0]=='[' && buf[1]=='#' && buf[2]=='-' && buf[3]=='?' && buf[4]==']'){
             //cout << "Got connection from " << in.sin_addr.s_addr << ':' << in.sin_port<< endl;
+            get_ip_str((sockaddr*)&in,&in_ip);
+            in_port = htons(in.sin_port);
+            to = in;
+            to_ip = in_ip;
+            to_port = in_port;
             if(inTerm)
             {
-                cout << "Connect Request From: " << in.sin_addr.s_addr << ":" << in.sin_port << endl;
+
+
+                cout << "Connect Request From: ";
+                printCharVector(&in_ip);
+                cout << ":" << in_port << endl;
             }
-            to = in;
             for(int i=0;i<6 && !exitLoops;++i){
                 rr.send(new string("[#-#]"),&to);
                 if(rr.run(buf,bufSize,&to, 1, 0)  && buf[0]=='[' && buf[1]=='*' && buf[2]=='-' && buf[3]=='#' && buf[4]==']'){
@@ -139,7 +201,9 @@ int main (void)
     }
     if(inTerm)
     {
-        cout << "Connection locked in, to: " << to.sin_addr.s_addr << ":" << to.sin_port << endl;
+        cout << "Connection locked in, to: ";
+        printCharVector(&to_ip);
+        cout << ":" << to_port << endl;
     }
     //Handshake/Connect
     while(run)
