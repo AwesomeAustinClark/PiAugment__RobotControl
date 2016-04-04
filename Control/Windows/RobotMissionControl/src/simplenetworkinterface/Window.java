@@ -20,6 +20,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JToggleButton;
 import net.java.games.input.Component;
 import net.java.games.input.Controller;
+import net.java.games.input.Rumbler;
 
 
 /**
@@ -38,6 +39,7 @@ public class Window extends javax.swing.JFrame{
     public int nws = 0;
     public int nad = 0;
     public boolean exitBothSides = false;
+    public boolean US_override = false;
     
     
     InetAddress IP;
@@ -69,7 +71,7 @@ public class Window extends javax.swing.JFrame{
         }
     }
     
-    byte[] makeStringToSend(int mfl, int mfr, int mbl, int mbr){ // values_in are -100 to +100
+    byte[] makeStringToSend(int mfl, int mfr, int mbl, int mbr, boolean override, boolean servo, boolean servo2, boolean servo3){ // values_in are -100 to +100
         int ival = 0;
         int ival2 = 0;
         int ival3 =0;
@@ -100,6 +102,13 @@ public class Window extends javax.swing.JFrame{
         ival4 = (int)((Math.abs(mbr)/(double)100)*255);
         val4 = (byte)ival4; 
         modifiers = setBit(modifiers, mbr>=0, 3);
+        
+        modifiers = setBit(modifiers, servo, 4);
+        modifiers = setBit(modifiers, servo2, 5);
+        modifiers = setBit(modifiers, servo3, 6);
+        
+        modifiers = setBit(modifiers, override, 7);
+        
         
         ts[0]= '[';
         ts[1]= modifiers;
@@ -231,7 +240,7 @@ public class Window extends javax.swing.JFrame{
                                 mbl = 0;
                                 mbr = 0;
                             }
-                            server.send(makeStringToSend(mfl, mfr, mbl, mbr));
+                            server.send(makeStringToSend(mfl, mfr, mbl, mbr, US_override,false,false,false));
                         }else if(ct == 2){// Gamepad
                             double x = ryAxisPercentage-50;
                             double y = yAxisPercentage-50;
@@ -258,7 +267,8 @@ public class Window extends javax.swing.JFrame{
                             // DEADZONE
                             //System.out.println(" <> "+right+" : "+left);
                             //System.out.println("Left: "+left+" Right: "+right);
-                            server.send(makeStringToSend((int)left, (int)right, (int)left, (int)right));
+                            server.send(makeStringToSend((int)left, (int)right, (int)left, (int)right, US_override, buttonsToggle[0],buttonsToggle[1],buttonsToggle[2]));
+
                             
                         }
                         //System.out.println(toSend);
@@ -278,7 +288,9 @@ public class Window extends javax.swing.JFrame{
                             exitWindow();
                         }
                         Thread.sleep(100);
-                    } catch (IOException | InterruptedException ex) {
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
                         Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -332,6 +344,7 @@ public class Window extends javax.swing.JFrame{
         axisForlabel = new javax.swing.JLabel();
         axisLabel = new javax.swing.JLabel();
         GamepadSupported = new javax.swing.JTextField();
+        Cb_US_Override = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -428,6 +441,13 @@ public class Window extends javax.swing.JFrame{
 
         GamepadSupported.setEditable(false);
 
+        Cb_US_Override.setText("Ultrsonic sensor Override");
+        Cb_US_Override.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                Cb_US_OverrideItemStateChanged(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -446,7 +466,9 @@ public class Window extends javax.swing.JFrame{
                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                     .addComponent(ckField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(Cb_US_Override))
                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -495,7 +517,8 @@ public class Window extends javax.swing.JFrame{
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(ckField, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(captureType, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(Cb_US_Override))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
@@ -587,10 +610,15 @@ public class Window extends javax.swing.JFrame{
             Logger.getLogger(Window.class.getName()).log(Level.WARNING, null, ex);
         }
     }//GEN-LAST:event_formWindowClosing
+
+    private void Cb_US_OverrideItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_Cb_US_OverrideItemStateChanged
+        US_override = !US_override;
+    }//GEN-LAST:event_Cb_US_OverrideItemStateChanged
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel ButtonPanel;
+    public javax.swing.JCheckBox Cb_US_Override;
     public javax.swing.JComboBox<String> GamePadComboBox;
     public javax.swing.JTextField GamepadSupported;
     private javax.swing.JPanel axisForPanel;
@@ -642,9 +670,9 @@ public class Window extends javax.swing.JFrame{
         axisForPanel.validate();
     }
     
+    int hatSwitchPos=0;
     public void setHatSwitch(float hatSwitchPosition) {
         int circleSize = 100;
-        
         Graphics2D g2d = (Graphics2D)hatSwitchPanel.getGraphics();
         g2d.clearRect(5, 15, hatSwitchPanel.getWidth() - 10, hatSwitchPanel.getHeight() - 22);
         g2d.drawOval(20, 22, circleSize, circleSize);
@@ -668,27 +696,35 @@ public class Window extends javax.swing.JFrame{
         if(Float.compare(hatSwitchPosition, Component.POV.UP) == 0){
             x = upCircleX;
             y = upCircleY;
+            hatSwitchPos = 0;
         }else if(Float.compare(hatSwitchPosition, Component.POV.DOWN) == 0){
             x = upCircleX;
             y = upCircleY + circleSize;
+            hatSwitchPos = 4;
         }else if(Float.compare(hatSwitchPosition, Component.POV.LEFT) == 0){
             x = leftCircleX;
             y = leftCircleY;
+            hatSwitchPos = 6;
         }else if(Float.compare(hatSwitchPosition, Component.POV.RIGHT) == 0){
             x = leftCircleX + circleSize;
             y = leftCircleY;
+            hatSwitchPos = 2;
         }else if(Float.compare(hatSwitchPosition, Component.POV.UP_LEFT) == 0){
             x = upCircleX - betweenX;
             y = upCircleY + betweenY;
+            hatSwitchPos = 7;
         }else if(Float.compare(hatSwitchPosition, Component.POV.UP_RIGHT) == 0){
             x = upCircleX + betweenX;
             y = upCircleY + betweenY;
+            hatSwitchPos = 1;
         }else if(Float.compare(hatSwitchPosition, Component.POV.DOWN_LEFT) == 0){
             x = upCircleX - betweenX;
             y = upCircleY + circleSize - betweenY;
+            hatSwitchPos = 5;
         }else if(Float.compare(hatSwitchPosition, Component.POV.DOWN_RIGHT) == 0){
             x = upCircleX + betweenX;
             y = upCircleY + circleSize - betweenY;
+            hatSwitchPos = 3;
         }
         
         g2d.fillOval(x, y, smallCircleSize, smallCircleSize);
@@ -707,6 +743,8 @@ public class Window extends javax.swing.JFrame{
     float axisValue = 0;
     int axisValueInPercentage = 0;
     boolean buttons[] = new boolean[30];
+    boolean buttonsPressed[] = new boolean[30];
+    boolean buttonsToggle[] = new boolean[30];
     public void ShowControllerData(Window win){
         while(!exitBothSides){
             // Currently selected controller.
@@ -718,6 +756,13 @@ public class Window extends javax.swing.JFrame{
                 win.showControllerDisconnected();
                 break;
             }
+            /*
+            Rumbler Rumblers[] =  controller.getRumblers();
+            System.out.println(Rumblers.length);
+            if(Rumblers.length>0){
+                Rumblers[0].rumble(1);
+            }
+            */
             
             // JPanel for other axes.
             JPanel axesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 2));
@@ -729,11 +774,11 @@ public class Window extends javax.swing.JFrame{
                     
             // Go trough all components of the controller.
             Component[] components = controller.getComponents();
+            
             for(int i=0; i < components.length; i++)
             {
                 Component component = components[i];
                 Component.Identifier componentIdentifier = component.getIdentifier();
-                
                 // Buttons
                 //if(component.getName().contains("Button")){ // If the language is not english, this won't work.
                 if(componentIdentifier.getName().matches("^[0-9]*$")){ // If the component identifier name contains only numbers, then this is a button.
@@ -742,7 +787,15 @@ public class Window extends javax.swing.JFrame{
                     if(component.getPollData() == 0.0f)
                         isItPressed = false;
                     
+                    if(isItPressed==false && buttonsPressed[Integer.parseInt(componentIdentifier.getName())]==true){
+                        if(Integer.parseInt(componentIdentifier.getName())==3){
+                            Cb_US_Override.doClick();
+                        }
+                        buttonsToggle[Integer.parseInt(componentIdentifier.getName())] = !buttonsToggle[Integer.parseInt(componentIdentifier.getName())];
+                    }
                     buttons[Integer.parseInt(componentIdentifier.getName())] = isItPressed;
+                    buttonsPressed[Integer.parseInt(componentIdentifier.getName())] = isItPressed;
+                    
                     // Button index
                     String buttonIndex;
                     buttonIndex = component.getIdentifier().toString();
@@ -817,6 +870,7 @@ public class Window extends javax.swing.JFrame{
                     //System.out.println(component.getIdentifier().toString()+": "+axisValueInPercentage);
                 }
             }
+            
             
             // Now that we go trough all controller components,
             // we add butons panel to window,

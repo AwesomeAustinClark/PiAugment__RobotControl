@@ -11,6 +11,15 @@
 #include <arpa/inet.h>
 #include <string>
 #include <cstring>
+#include <time.h>
+#include <pthread.h>
+#include <fstream>
+#include <time.h>
+#include <stdio.h>
+#include <iostream>
+#include <string>
+#include <signal.h>
+#include <unistd.h>
 
 #include "Motor.h"
 #include "roboRecive.h"
@@ -22,21 +31,24 @@
 using namespace std;
 
 bool inTerm = false;
-
-void wait()
-{
-    usleep(500000);
-    usleep(500000);
-    usleep(500000);
-    usleep(500000);
-    usleep(500000);
-
-}
+bool run = true;
 
 Motor frontLeft;
 Motor frontRight;
 Motor backLeft;
 Motor backRight;
+
+
+bool ultraSonicSensors[4];
+const char servo_0 = 'q';
+const char servo_30 = 'w';
+const char servo_60 = 'e';
+const char servo_90 = 'r';
+const char servo_120 = 't';
+const char servo_150 = 'y';
+const char servo_170 = 'u';
+const char servo_180 = 'i';
+int servos[3] = {servo_0,servo_0,servo_0};
 
 void stopMotors()
 {
@@ -55,30 +67,34 @@ void setForward()
 }
 
 //Convert a struct sockaddr address to a string, IPv4 and IPv6:
-void get_ip_str(const struct sockaddr *sa, vector<char>* str){
+void get_ip_str(const struct sockaddr *sa, vector<char>* str)
+{
     char s[INET6_ADDRSTRLEN];
-    switch(sa->sa_family) {
-        case AF_INET:
-            //char s[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
-                    s, INET_ADDRSTRLEN);
-            (*str).clear();
-            for(int i=0;i<INET_ADDRSTRLEN;++i){
-                (*str).push_back(s[i]);
-            }
-            break;
+    switch(sa->sa_family)
+    {
+    case AF_INET:
+        //char s[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
+                  s, INET_ADDRSTRLEN);
+        (*str).clear();
+        for(int i=0; i<INET_ADDRSTRLEN; ++i)
+        {
+            (*str).push_back(s[i]);
+        }
+        break;
 
-        case AF_INET6:
+    case AF_INET6:
 
-            inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
-                    s, INET6_ADDRSTRLEN);
-            (*str).clear();
-            for(int i=0;i<INET6_ADDRSTRLEN;++i){
-                (*str).push_back(s[i]);
-            }
-            break;
+        inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
+                  s, INET6_ADDRSTRLEN);
+        (*str).clear();
+        for(int i=0; i<INET6_ADDRSTRLEN; ++i)
+        {
+            (*str).push_back(s[i]);
+        }
+        break;
 
-        default:
+    default:
         (*str).clear();
         // = "Unknown AF";
         (*str).push_back('U');
@@ -94,13 +110,79 @@ void get_ip_str(const struct sockaddr *sa, vector<char>* str){
     }
 }
 
-void printCharVector(vector<char>* cv){
-    if(cv==NULL || (*cv).empty()){
+void printCharVector(vector<char>* cv)
+{
+    if(cv==NULL || (*cv).empty())
+    {
         return;
     }
-    for(unsigned int i=0;i<(*cv).size();++i){
+    for(unsigned int i=0; i<(*cv).size(); ++i)
+    {
         cout << (*cv)[i];
     }
+}
+
+void* arduino_run(void *ptr)
+{
+    fstream in("/dev/ttyACM0",ios::in);
+    fstream out("/dev/ttyACM0",ios::out);
+    if(inTerm){
+            cout << "Arduino starting...";
+        }
+    if(in.is_open() && out.is_open())
+    {
+        if(inTerm){
+            cout << " file exist (connected)" << endl;
+        }
+        int i=0;
+        while(run)
+        {
+            bool b,b2,b3,b4;
+            char ch;
+            char chars[20];
+            b = out.put('g');
+            b = out.put(servos[0]);
+            b = out.put(servos[1]);
+            b = out.put(servos[2]);
+            b2 = out.flush();
+            //cout << "servo: " << servos[0] << endl;
+            sleepm(10005);
+            while(i<20)
+            {
+
+                //b3 = in.get(chars[i]);
+                b3 = in.get(ch);
+                if(!b3)
+                {
+                    in.clear();
+                    break;
+                }else{
+                    chars[i++]=ch;
+                }
+                //cout << chars[i];
+            }
+            if(i==6)
+            {
+
+                ultraSonicSensors[0] = chars[0]=='1';
+                ultraSonicSensors[1] = chars[1]=='1';
+                ultraSonicSensors[2] = chars[2]=='1';
+                ultraSonicSensors[3] = chars[3]=='1';
+                //cout << "good " <<ultraSonicSensors[0] << endl;
+            }
+            i=0; // Keep this
+            //cout << ' ' << b<<b2<<b3<<b4 << endl;
+            sleepm(100);
+        }
+        in.close();
+        out.close();
+    }else{
+        if(inTerm){
+            cout << " file does not exist! (not connected)" << endl;
+        }
+    }
+    pthread_exit(ptr);
+    return ptr;
 }
 
 sockaddr_in in;
@@ -124,19 +206,17 @@ int main (void)
         uss.send();
         while(current==-1){
             uss.recive(&current);
-            usleep(10);
+            sleep(0,10);
         }
         cout << "time: " << current << ' ' << i++ << endl;
-        usleep((unsigned int) 500000);
+        sleep(0,(unsigned int) 500000);
     }
     return 1;
     */
     Motor frontLeft = Motor(5,6,Motor::ModePwm);
     Motor frontRight = Motor(24,25, Motor::ModePwm);
-    Motor backLeft = Motor(3,2, Motor::ModePwm);
+    Motor backLeft = Motor(9,10, Motor::ModePwm);
     Motor backRight = Motor(23,18, Motor::ModePwm);
-
-
     stopMotors();
     cout << "Done." <<endl;
     /*
@@ -152,11 +232,12 @@ int main (void)
     {
         inTerm=true;
     }
-    bool run = true;
+    pthread_t arduino;
+
     roboRecive rr = roboRecive();
 
-    usleep(500000);
-    //usleep(500000);
+    sleep(0,5000000);
+    //sleep(0,500000);
 
     if (inTerm)cout << " Start " << endl;
     bitset<8> byte(0);
@@ -166,11 +247,14 @@ int main (void)
     bool exitLoops = false;
 
     //Handshake/Connect
-    if(inTerm){
+    if(inTerm)
+    {
         cout << "Waiting for handshake" << endl;
     }
-    while(!exitLoops){
-        if(rr.run(buf,bufSize,&in, 1, 0) && buf[0]=='[' && buf[1]=='#' && buf[2]=='-' && buf[3]=='?' && buf[4]==']'){
+    while(!exitLoops)
+    {
+        if(rr.run(buf,bufSize,&in, 1, 0) && buf[0]=='[' && buf[1]=='#' && buf[2]=='-' && buf[3]=='?' && buf[4]==']')
+        {
             //cout << "Got connection from " << in.sin_addr.s_addr << ':' << in.sin_port<< endl;
             get_ip_str((sockaddr*)&in,&in_ip);
             in_port = htons(in.sin_port);
@@ -185,11 +269,14 @@ int main (void)
                 printCharVector(&in_ip);
                 cout << ":" << in_port << endl;
             }
-            for(int i=0;i<6 && !exitLoops;++i){
+            for(int i=0; i<6 && !exitLoops; ++i)
+            {
                 rr.send(new string("[#-#]"),&to);
-                if(rr.run(buf,bufSize,&to, 1, 0)  && buf[0]=='[' && buf[1]=='*' && buf[2]=='-' && buf[3]=='#' && buf[4]==']'){
+                if(rr.run(buf,bufSize,&to, 1, 0)  && buf[0]=='[' && buf[1]=='*' && buf[2]=='-' && buf[3]=='#' && buf[4]==']')
+                {
                     //cout << "Locking connection" << endl;
-                    for(int x=0;x<3 && !exitLoops;++x){
+                    for(int x=0; x<3 && !exitLoops; ++x)
+                    {
                         rr.send(new string("[*-*]"),&to);
 
                     }
@@ -205,6 +292,7 @@ int main (void)
         printCharVector(&to_ip);
         cout << ":" << to_port << endl;
     }
+    pthread_create(&arduino, NULL, arduino_run, NULL);
     //Handshake/Connect
     while(run)
     {
@@ -221,7 +309,7 @@ int main (void)
                 //cout << (uint8_t)byte[2] << endl;
                 if(byte[0] == 1)  // mfl forward
                 {
-                    frontLeft.setForward(255-(uint8_t)buf[2]);
+                        frontLeft.setForward(255-(uint8_t)buf[2]);
                 }
                 else   // mfl backward
                 {
@@ -251,10 +339,58 @@ int main (void)
                 {
                     backRight.setBackward(255-(uint8_t)buf[5]);
                 }
+                if(byte[4] == 0)  // servo pos
+                {
+                    servos[0] = servo_0;
+                }else{
+                    servos[0] = servo_170;
+                }
+                if(byte[5] == 0)  // servo pos
+                {
+                    servos[1] = servo_0;
+                }else{
+                    servos[1] = servo_170;
+                }
+                if(byte[6] == 0)  // servo pos
+                {
+                    servos[2] = servo_0;
+                }else{
+                    servos[2] = servo_170;
+                }
                 if(inTerm)  // Print msg
                 {
                     //cout << "MSG: " << buf[0] << buf[1] << buf[2] << buf[3] << buf[4]
                     //<< buf[5] << buf[6] << endl;
+                }
+                //sleepm(5);
+                if(byte[7]==0){
+                    if(ultraSonicSensors[0]==1){ // Front/Forward
+                        if(byte[0]==1){
+                            frontLeft.stop();
+                        }
+                        if(byte[1]==1){
+                            frontRight.stop();
+                        }
+                        if(byte[2]==1){
+                            backLeft.stop();
+                        }
+                        if(byte[3]==1){
+                            backRight.stop();
+                        }
+                    }else if(ultraSonicSensors[2]==1){ // Back/Backward
+                        if(byte[0]==0){
+                            frontLeft.stop();
+                        }
+                        if(byte[1]==0){
+                            frontRight.stop();
+                        }
+                        if(byte[2]==0){
+                            backLeft.stop();
+                        }
+                        if(byte[3]==0){
+                            backRight.stop();
+                        }
+                    }
                 }
             }
             else if(buf[0]=='[' && buf[2]==']')
@@ -277,7 +413,8 @@ int main (void)
         //cout <<  current << endl;
         if((current-last)>1100000)
         {
-            if(inTerm && connected){
+            if(inTerm && connected)
+            {
                 cout << "Connection LOST!   > " << current << endl;
                 connected = false;
             }
@@ -286,19 +423,27 @@ int main (void)
             backLeft.stop();
             frontRight.stop();
             backRight.stop();
-        }else{
-            if(!connected){
+        }
+        else
+        {
+            if(!connected)
+            {
                 connected = true;
-                if(inTerm){
+                if(inTerm)
+                {
                     cout << "Connection Gained! > " << current << endl;
                 }
             }
         }
-        usleep(1);
+        sleep(0,1000000);
     }
     stopMotors();
     run = false;
     delete[]buf;
+    sleep(1,0);
+    void* result;
+    cout << "stopping arduino thread" << endl;
+    pthread_join(arduino, &result);
     if (inTerm)cout << "Stopped....." << endl;
     exit(0);
     return 0;

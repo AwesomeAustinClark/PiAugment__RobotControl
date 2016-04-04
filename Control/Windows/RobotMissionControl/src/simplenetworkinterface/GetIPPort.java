@@ -132,23 +132,34 @@ public class GetIPPort extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    public void disableAll(){
+        GetIP.setEditable(false);
+        getPort.setEditable(false);
+        Enter.setEnabled(false);
+        Cancel.setEnabled(false);
+        Enter_Bypass.setEnabled(false);
+    }
+    
+    public void enableAll(){
+        GetIP.setEditable(true);
+        getPort.setEditable(true);
+        Enter.setEnabled(true);
+        Cancel.setEnabled(true);
+        Enter_Bypass.setEnabled(true);
+    }
+    
+    
     private void EnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EnterActionPerformed
         boolean bool = true;
         Thread ct = new Thread(new Runnable() {
             @Override
             public void run() {
-                GetIP.setEditable(false);
-                getPort.setEditable(false);
-                Enter.setEnabled(false);
-                Cancel.setEnabled(false);
+                disableAll();
                 initialized=connect();
                 if(initialized==false){
                     ErrorField.setText("Failed to connect!");
                 } 
-                GetIP.setEditable(true);
-                getPort.setEditable(true);
-                Enter.setEnabled(true);
-                Cancel.setEnabled(true); 
+                enableAll();
             }
         });
         try {
@@ -182,6 +193,7 @@ public class GetIPPort extends javax.swing.JFrame {
     }//GEN-LAST:event_getPortActionPerformed
 
     private void Enter_BypassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Enter_BypassActionPerformed
+        disableAll();
         boolean bool = true;
         try {
             IP = InetAddress.getByName(GetIP.getText());
@@ -195,6 +207,7 @@ public class GetIPPort extends javax.swing.JFrame {
             bool = false;
             ErrorField.setText("Invalid Port num. Port is a num from 0 to 65535");
         }
+        enableAll();
         initialized = bool;
     }//GEN-LAST:event_Enter_BypassActionPerformed
 

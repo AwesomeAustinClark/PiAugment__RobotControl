@@ -15,21 +15,26 @@ UltraSonicSensor::UltraSonicSensor(int sigPin,int recvPin)
     digitalWrite(this->recivePin, LOW);
 }
 
-void UltraSonicSensor::send(){
+void UltraSonicSensor::send()
+{
     digitalWrite(this->signalPin, HIGH);
     delay(10);
     digitalWrite(this->signalPin, LOW);
     getTimeOfDayMills64(&this->lastSend);
 }
 
-void UltraSonicSensor::recive(uint64_t* rt){
+void UltraSonicSensor::recive(uint64_t* rt)
+{
     uint64_t time = 0;
     *rt = 0;
     getTimeOfDayMills64(&time);
-    if(digitalRead(this->recivePin)==true){
+    if(digitalRead(this->recivePin)==true)
+    {
         *rt = time-this->lastSend;
         //std::cout << ": " << *rt << std::endl;
-    }else{
+    }
+    else
+    {
         //std::cout << "NOTHING" << std::endl;
         *rt = -1;
     }

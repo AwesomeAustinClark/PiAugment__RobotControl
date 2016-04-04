@@ -44,6 +44,8 @@
                                   <Component id="ckField" min="-2" pref="77" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="captureType" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="Cb_US_Override" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="jScrollPane2" min="-2" pref="215" max="-2" attributes="0"/>
@@ -112,6 +114,7 @@
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="ckField" alignment="3" min="-2" pref="25" max="-2" attributes="0"/>
                           <Component id="captureType" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="Cb_US_Override" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jScrollPane1" min="-2" pref="275" max="-2" attributes="0"/>
@@ -327,6 +330,17 @@
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
       </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="Cb_US_Override">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Ultrsonic sensor Override"/>
+      </Properties>
+      <Events>
+        <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="Cb_US_OverrideItemStateChanged"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
       </AuxValues>

@@ -12,12 +12,14 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-lwiringPi" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add library="/usr/lib/libwiringPi.so" />
+					<Add library="pthread" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -32,6 +34,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="pthread" />
+					<Add library="/usr/lib/libwiringPi.so" />
 				</Linker>
 			</Target>
 		</Build>
