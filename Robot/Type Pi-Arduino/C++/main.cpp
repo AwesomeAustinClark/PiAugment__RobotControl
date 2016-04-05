@@ -339,19 +339,19 @@ int main (void)
                 {
                     backRight.setBackward(255-(uint8_t)buf[5]);
                 }
-                if(byte[4] == 0)  // servo pos
+                if(byte[4] == 0)  // servo pos (servo 1)
                 {
                     servos[0] = servo_0;
                 }else{
                     servos[0] = servo_170;
                 }
-                if(byte[5] == 0)  // servo pos
+                if(byte[5] == 0)  // servo pos (servo 1)
                 {
                     servos[1] = servo_0;
                 }else{
                     servos[1] = servo_170;
                 }
-                if(byte[6] == 0)  // servo pos
+                if(byte[6] == 0)  // servo pos (servo 1)
                 {
                     servos[2] = servo_0;
                 }else{
