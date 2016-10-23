@@ -45,11 +45,6 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-*.properties
-*.o
-*.class
-Control/Windows/RobotMissionControl/build
 *.depend
-Control/Windows/RobotMissionControl/manifest.mf
-Control/Windows/RobotMissionControl/nbproject/private/private.xml
-Control/Windows/RobotMissionControl/nbproject/build-impl.xml
+./Control/RobotControl/nbproject/private/
+./Robot/raspberryPi/nbproject/private/
